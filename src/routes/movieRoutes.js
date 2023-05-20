@@ -114,7 +114,7 @@ router.get('/create_time_slots',async(request,response)=>{
 
 //Route to get movie and theatre id
 router.get('/movies', async(request, response) => {
-	await sequalize.query(`SELECT s.start_time,t.day_of_show from Slots s left join ((SELECT slot_id,day_of_show  from Movie_Shows ms   WHERE (ms.movie_id  = (SELECT movie_id from Movies m where movie_name ='${request.query.movie}')) and (ms.theatre_id  = (SELECT theatre_id from Theatres t  where theatre_name ='${request.query.theatre}')))) t on s.slot_id =t.slot_id`).then((success)=>{
+	await sequalize.query(`SELECT s.start_time,t.day_of_show from Slots s left join ((SELECT slot_id,day_of_show  from Movie_Shows ms   WHERE (ms.movie_id  = (SELECT movie_id from Movies m where movie_name ='${request.query.movie}')) and (ms.theatre_id  = (SELECT theatre_id from Theatres t  where theatre_name ='${request.query.theatre}')))) t on s.slot_id =t.slot_id`, {type: sequelize.QueryTypes.SELECT}).then((success)=>{
 		response.status(200).json(success);
 	}).catch((error)=>{
 		response.json(error);
