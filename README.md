@@ -20,6 +20,8 @@ the app uses sync method, it will automatically create tables if they doesn't ex
 http://localhost:3000/api/create_movies - This route will create two movies named MovieA and MovieB in table Movies(movie_id,movie_column) <br>
 http://localhost:3000/api/create_time_slots - This route will create two time slots in table Slots(slot_id,start_time,end_time) as (10:00:00,12:00:00) and (15:00:00,17:00:00)
 
+There is shows tables that has schema(show_id,theatre_id(foreign key),movie_id(foreign key),slot_id(foreign key),day_of_show)
+A orders table to store orders with schema(order_id,cust_name,show_id(foreign key),seat_no)
 
 ### after running above routes only, run this route
 
@@ -28,4 +30,16 @@ http://localhost:3000/api/create_time_slots - This route will create two time sl
 
 ### get movie shows day and time
 >http://localhost:3000/api/movies?movie=MovieA&theatre=Theatre_A - This route search for available shows for MovieA in Theatre_A
+
+### setting till here remains same
+### start the redis server in terminal
+
+>http://localhost:3000/api/book_ticket - Pass the following as body to book ticket body->raw->json {
+    "show_id":9,
+    "cust_name":"Shubham",
+    "seat_no":5
+}
+
+### The app hashes the last response, so if same last request is made it will not fetch from database rather it will respond with stored response
+
 
