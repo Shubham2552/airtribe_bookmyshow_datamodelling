@@ -5,11 +5,13 @@ const Movie = require('../models/movies');
 const Movie_Show = require('../models/movies_shows');
 const Slot = require('../models/slots');
 const Theatre = require('../models/theatres');
-
-
+const Movie_Orders=require('../models/movie_orders');
+const redisClient = require('../configs/redis').redisClient;
 
 //Route to create movie show entries
 router.get('/create_show_entries', async(request, response) => {
+
+
 	const movies = await Movie.findAll();
 	const theatres = await Theatre.findAll();
 	const slots = await Slot.findAll();
@@ -112,16 +114,92 @@ router.get('/create_time_slots',async(request,response)=>{
 	response.send('Successfully created time slots').status(200);
 })
 
-//Route to get movie and theatre id
+//Route to get showid,movie and theatre id
 router.get('/movies', async(request, response) => {
-	await sequalize.query(`SELECT s.start_time,t.day_of_show from Slots s left join ((SELECT slot_id,day_of_show  from Movie_Shows ms   WHERE (ms.movie_id  = (SELECT movie_id from Movies m where movie_name ='${request.query.movie}')) and (ms.theatre_id  = (SELECT theatre_id from Theatres t  where theatre_name ='${request.query.theatre}')))) t on s.slot_id =t.slot_id`, {type: sequelize.QueryTypes.SELECT}).then((success)=>{
-		response.status(200).json(success);
-	}).catch((error)=>{
-		response.json(error);
-	})
+
+
+	 redisClient.hGetAll('info').then(async(success)=>{
+		console.log(success)
+		if(success.movie  == request.query.movie && success.theatre==request.query.theatre){
+			console.log('Cache hit');
+			 redisClient.get('result').then(success=>response.status(200).send(JSON.parse(success)))
+
+		}
+	else{
+		await sequalize.query(`SELECT t.show_id,s.start_time,t.day_of_show from Slots s left join ((SELECT show_id,slot_id,day_of_show  from Movie_Shows ms   WHERE (ms.movie_id  = (SELECT movie_id from Movies m where movie_name ='${request.query.movie}')) and (ms.theatre_id  = (SELECT theatre_id from Theatres t  where theatre_name ='${request.query.theatre}')))) t on s.slot_id =t.slot_id`, {type: sequalize.QueryTypes.SELECT}).then(async(success)=>{
+			// console.log(success);
+			
+			await redisClient.set('result',JSON.stringify(success))
+			await redisClient.hSet('info',{
+				'movie':request.query.movie,
+				'theatre':request.query.theatre
+			});
+	
+			
+			response.status(200).json(success);
+		}).catch((error)=>{
+			response.json(error);
+		})
+	
+
+	}})
+
+
+
+
+	
+	
+	
+
+	
+
 
 
 });
+
+router.post('/book_ticket',async(request,response)=>{
+	
+	
+
+
+    try{
+        const result = await sequalize.transaction(async (t) => {
+            const movie_exist = await Movie_Orders.findAll({
+                where: {
+                    show_id: request.body.show_id,
+					seat_no:request.body.seat_no,
+
+                },
+                transaction: t
+            });
+		console.log(!movie_exist.length);
+			if(!movie_exist.length){
+				const movie_order = await Movie_Orders.build({
+                    show_id: request.body.show_id,
+					seat_no:request.body.seat_no,
+					cust_name:request.body.cust_name,
+					transaction: t
+				})
+
+				await movie_order.save({
+					transaction: t
+				}).catch(function(error){
+					response.json(error);
+					
+				});
+				// throw new Error();
+				response.status(200).json("Success");
+			}else{
+				throw new Error();
+			}
+  
+        });
+        // throw new Error();
+    } catch (e) {
+        console.log(e);
+        response.json({"message": "Transaction Rollbacked"});
+    }
+})
 
 
 
