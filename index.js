@@ -1,6 +1,9 @@
 const express = require('express');
 const apiRoutes = require('./src/routes/movieRoutes');
 const {sequalize, connectToDB} = require('./src/configs/mysqldb');
+const {redisClient, connectToRedis} = require('./src/configs/redis');
+
+
 
 const app = express();
 const PORT = 3000;
@@ -13,6 +16,7 @@ app.get('/', (request, response) => {
 });
 
 app.listen(PORT, async () => {
-  console.log('Server is running at http://localhost:${PORT}');
+  console.log(`Server is running at http://localhost:${PORT}`);
   await connectToDB();
+  await connectToRedis();
 });

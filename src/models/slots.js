@@ -3,7 +3,7 @@
 
 const sequalize = require('../configs/mysqldb').sequalize;
 const DataTypes = require('sequelize');
-
+const Movie_Show=require('../models/movies_shows')
 // Define the model by providing name of the table, it's columns, their datatypes and constraints.
 
 const Slot = sequalize.define('Slots', {
@@ -21,6 +21,8 @@ const Slot = sequalize.define('Slots', {
         allowNull:false
 	}
 });
+
+
 
 
 

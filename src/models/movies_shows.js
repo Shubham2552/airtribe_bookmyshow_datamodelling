@@ -3,6 +3,10 @@
 
 const sequalize = require('../configs/mysqldb').sequalize;
 const DataTypes = require('sequelize');
+const Theatre = require('../models/theatres');
+const Movie = require('../models/movies');
+const Slot = require('../models/slots');
+
 
 // Define the model by providing name of the table, it's columns, their datatypes and constraints.
 
@@ -14,15 +18,28 @@ const Movie_Show = sequalize.define('Movie_Shows', {
 	},
 	theatre_id: {
 		type: DataTypes.BIGINT,
-		allowNull:false
+		allowNull:false,
+		references: {
+			model: 'Theatres', 
+			key: 'theatre_id', 
+		 },
 	},
 	movie_id: {
 		type: DataTypes.BIGINT,
-		allowNull:false
+		allowNull:false,
+		references: {
+			model: 'Movies', 
+			key: 'movie_id', 
+		 },
+		
 	},
     slot_id: {
 		type: DataTypes.BIGINT,
-		allowNull:false
+		allowNull:false,
+		references: {
+			model: 'Slots', 
+			key: 'slot_id', 
+		 },
 	},
     day_of_show: {
 		type: DataTypes.BIGINT,
@@ -30,6 +47,7 @@ const Movie_Show = sequalize.define('Movie_Shows', {
 	},
 
 })
+
 
 
 // Execute the sync command to run migrations 
