@@ -40,6 +40,6 @@ A orders table to store orders with schema(order_id,cust_name,show_id(foreign ke
     "seat_no":5
 }
 
-### The app hashes the last response, so if same last request is made it will not fetch from database rather if will respond with stored response
+### The app hashes the last response, so if same last request is made it will not fetch from database rather it will respond with stored response
 
 
