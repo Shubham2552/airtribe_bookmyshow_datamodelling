@@ -42,4 +42,25 @@ A orders table to store orders with schema(order_id,cust_name,show_id(foreign ke
 
 ### The app hashes the last response, so if same last request is made it will not fetch from database rather it will respond with stored response
 
+### There has been changes in schema of Movie_Shows and Movies table so after setting new clean database it will generate the tables again and then runnng routes from line 18 so recreate the entries.
 
+>After entries are created http://localhost:3000/api/get_quick_data?movie=Avengers2 pass movie name as query parameter it either searches data from redis or if not available in redis it will fetch from db and then store in redis.
+
+>GET:http://localhost:3000/api/rating_comment will get the ratings and comments for a particular movie stored in json array.
+
+>POST:http://localhost:3000/api/rating_comment will get the ratings and comments for a particular movie stored in json array.
+```
+{
+    "id":2,
+    "comment":"kafi achi movie hai",
+    "rating":"4"
+
+}
+```
+> post route with body type JSON wil add comment we have to give movie id, comment, and rating
+
+>http://localhost:3000/index/movie/searchmovie?movie_name=Avengers this route will fetch movie named avengers from elastic search for now i have added my elastic search cloud details and so rather than local cloud can be used.
+
+>http://localhost:3000/index/movie/searchformat?format=IMAX
+>http://localhost:3000/index/movie/searchlanguage?language=Hindi
+>the above two routes are to find movies based on language and format filter, there are 4 languages [Hindi,English,Tamil,Kannada] and three formats [2D,3D,IMAX] 
