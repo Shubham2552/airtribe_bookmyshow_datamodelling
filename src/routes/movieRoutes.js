@@ -6,6 +6,7 @@ const Movie_Show = require('../models/movies_shows');
 const Slot = require('../models/slots');
 const Theatre = require('../models/theatres');
 const Movie_Orders=require('../models/movie_orders');
+const { TIME, where } = require('sequelize');
 const redisClient = require('../configs/redis').redisClient;
 
 //Route to create movie show entries
@@ -16,25 +17,29 @@ router.get('/create_show_entries', async(request, response) => {
 	const theatres = await Theatre.findAll();
 	const slots = await Slot.findAll();
 
-
+	const languages=['Hindi','English','Tamil','Kannada'];
+	const formats=['2D','3D','IMAX'];
 	
 	Promise.all([movies, theatres, slots]).then(async (values) => {
-		for(let l=1;l<=7;l++){
+		for(let n=1;n<=7;n++){
 			for(let i=0;i<theatres.length;i++){
 				for(let j=0;j<movies.length;j++){
 					for(let k=0;k<slots.length;k++){
-					
-						const  movie_show = Movie_Show.build({
+						for(let l=0;l<languages.length;l++){
+							for(let m=0;m<formats.length;m++){	
+							const  movie_show = Movie_Show.build({
 							theatre_id: theatres[j].theatre_id,
 							movie_id:movies[i].movie_id,
 							slot_id:slots[k].slot_id,
-							day_of_show:l
+							day_of_show:n,
+							show_language:languages[l],
+							format:formats[m]})
 
-						})
-
-						await movie_show.save().catch(function(error){
-							response.json(error);
-						});
+							await movie_show.save().catch(function(error){
+								response.json(error);   
+							});
+						}
+					}
 
 					}
 					
@@ -55,10 +60,29 @@ router.get('/create_show_entries', async(request, response) => {
 //Route to create two movies
 router.get('/create_movies',async(request,response)=>{
 	const movie = Movie.build({
-		movie_name: "MovieA"
+		movie_name: "Avengers",
+		cast:['Robert Downey Junior','Chris Evans','Tom Holland'],
+		crew:['Chris Hemsworth','Mark Ruffalo'],
+		movie_plot:'Saving the world from attack of aliens',
+		runtime:'02:00:00',
+		language:['Hindi','English','Tamil','Kannada'],
+		genre:['Sci-fi','Action'],
+		formats:['2D','3D','IMAX'],
+		ratings:['4.5'],
+		comments:['Good movie']
+
 	})
 	const movie2 = Movie.build({
-		movie_name: "MovieB"
+		movie_name: "Avengers2",
+		cast:['Robert Downey Junior','Chris Evans','Tom Holland'],
+		crew:['Chris Hemsworth','Mark Ruffalo'],
+		movie_plot:'Saving the world from attack of aliens',
+		runtime:'02:00:00',
+		language:['Hindi','English','Tamil','Kannada'],
+		genre:['Sci-fi','Action'],
+		formats:['2D','3D','IMAX'],
+		ratings:['4.5'],
+		comments:['Good movie']
 	})
 
 	await movie.save().catch(function(error){
@@ -144,19 +168,105 @@ router.get('/movies', async(request, response) => {
 
 	}})
 
-
-
-
-	
-	
-	
-
-	
-
-
-
 });
 
+	//route to retrive movie data faster with 'movie' passesd as query
+router.get('/get_quick_data',async (request,response)=>{
+		
+		
+	try{
+		// throw error;
+		await redisClient.get('movies').then((success)=>{
+			// console.log(success)
+			if(success!=undefined){
+				success=JSON.parse(success);
+			
+				for(let i=0;i<success.length;i++){
+					if(request.query.movie==success[i].movie_name) 
+					{
+						console.log('Cache hit');
+						response.status(200).send(success[i]);
+					}
+				}
+				// throw error;
+				
+			}
+			// throw error;
+		
+		})
+	}catch(err){
+		try
+		{
+			const movies=await Movie.findAll();
+				await redisClient.set('movies',JSON.stringify(movies)).then(()=>{
+					for(let i=0;i<movies.length;i++){
+						if(request.query.movie==movies[i].movie_name) 
+						{
+							console.log('getting data from database');
+							response.status(200).send(movies[i]);
+						}
+					}
+				})
+		}catch(error){
+			return response.status(404).send('Movie not found');
+		}
+		
+	}
+})
+
+
+//route to store and retrive rating
+router.post('/rating_comment',async(request,response)=>{
+	const {id,comment,rating}=request.body;
+	await Movie.findOne(
+		{
+			attributes: ['comments', 'ratings'],
+			where:{
+				movie_id:id
+			}
+		}).then(async(success)=>{
+			await Movie.update({
+				ratings: [...success.ratings,rating],
+				comments:[...success.comments,comment]
+			  }, {
+				where: {
+				  movie_id:parseInt(id)
+				}
+			  }).then((success)=>{
+				response.status(200).send('Successfully added rating and comment');
+			  })
+		})
+		// console.log(movie.comments,movie.ratings);
+		// response.status(200).send(movie);
+
+})
+	
+//route to store and retrive rating
+router.get('/rating_comment',async(request,response)=>{
+	const {id}=request.body;
+	await Movie.findOne(
+		{
+			attributes: ['comments', 'ratings'],
+			where:{
+				movie_id:id
+			}
+		}).then(async(success)=>{
+				response.status(200).send(success);
+	
+		})
+		// console.log(movie.comments,movie.ratings);
+		// response.status(200).send(movie);
+
+})
+	
+
+	
+
+
+
+
+
+// Route to book ticket
 router.post('/book_ticket',async(request,response)=>{
 	
 	

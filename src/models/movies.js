@@ -20,7 +20,44 @@ const Movie = sequalize.define('Movies', {
     	primaryKey: true
 	},
 	movie_name: {
-		type: DataTypes.STRING(100)
+		type: DataTypes.STRING(100),
+		allowNull:false
+	},		
+	cast:{
+		type:DataTypes.JSON,
+		allowNull:false
+	},
+	crew:{
+		type:DataTypes.JSON,
+		allowNull:false
+	},
+	movie_plot:{
+		type:DataTypes.STRING(100),
+		allowNull:false
+	},
+	runtime:{
+		type:DataTypes.TIME,
+		allowNull:false
+	},
+	language:{
+		type:DataTypes.JSON,
+		allowNull:false
+	},
+	genre:{
+		type:DataTypes.JSON,
+		allowNull:false
+	},
+	formats:{
+		type:DataTypes.JSON,
+		allowNull:false
+	},
+	ratings:{
+		type:DataTypes.JSON,
+
+	},
+	comments:{
+		type:DataTypes.JSON,
+
 	}
 })
 

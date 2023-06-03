@@ -44,7 +44,18 @@ const Movie_Show = sequalize.define('Movie_Shows', {
     day_of_show: {
 		type: DataTypes.BIGINT,
 		allowNull:false
+	},	show_language:{
+		type: DataTypes.STRING(25),
+		allowNull:false
 	},
+	format:{
+		type: DataTypes.STRING(10),
+		allowNull:false
+	},
+	genre:{
+		type: DataTypes.STRING(25),
+		allowNull:false
+	}
 
 })
 
